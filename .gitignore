@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 key_pair_list.json
-wallet.py
 test.py
 pass.py
 # C extensions
