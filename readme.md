@@ -46,7 +46,7 @@ The uPow Blockchain Wallet is a command-line interface (CLI) tool designed for i
      For users who prefer not to install Xcode, downloading Command Line Tools for Xcode from [Apple Developer Downloads](https://developer.apple.com/download/more/) is an alternative.
      [https://ics.uci.edu/~pattis/common/handouts/macclion/clang.html](https://ics.uci.edu/~pattis/common/handouts/macclion/clang.html)
 
-Please ensure these tools are correctly installed and configured on your system before proceeding with the installation of the Python package dependencies.
+   Please ensure these tools are correctly installed and configured on your system before proceeding with the installation of the Python package dependencies.
 
 3. **Install the required dependencies** by running the following command in your terminal:
 
