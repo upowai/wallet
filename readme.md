@@ -120,6 +120,18 @@ python3 wallet.py vote -r [range] -to [recipient_address]
 - `-r`: The range of your vote.
 - `-to`: The address of the inode you are voting for.
 
+### Revoke
+
+The `revoke` command allows users to withdraw their delegation or validation rights. This can be applied dynamically and is useful for managing staking preferences or validator participation.
+
+- To revoke a delegation or validation:
+
+```bash
+python3 wallet.py revoke -from [address]
+```
+
+- `-from`: The address from which you are revoking your stake or validation rights. This could be a validator address if you are a staked delegate, or it could be an inode address if you are a validator.
+
 ## Support
 
 For additional help or information about the uPow Blockchain Wallet, please refer to the official uPow documentation or contact the support team at discord.
