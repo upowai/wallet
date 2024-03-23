@@ -103,6 +103,7 @@ python3 wallet.py register_validator
 ### Voting
 
 1. To vote for a validator by a delegate:
+   - Delegates can vote for validators within a specified range from 1 to 10. The amount of staked coins directly influences their voting power. For example, if a delegate stakes 1000 coins and allocates a voting range of 5 to a validator, it signifies that 500 of their staked coins support that validator.
 
 ```bash
 python3 wallet.py vote -r [range] -to [recipient_address]
@@ -112,6 +113,7 @@ python3 wallet.py vote -r [range] -to [recipient_address]
 - `-to`: The address of the validator you are voting for.
 
 2. To vote for a Inode by a validator:
+   - Validators, once registered, can cast votes towards iNodes based on their total stake from delegate This process is similar to delegate voting but is specifically aimed at supporting network infrastructure and governance.
 
 ```bash
 python3 wallet.py vote -r [range] -to [recipient_address]
