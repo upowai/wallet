@@ -16,13 +16,45 @@ The uPow Blockchain Wallet is a command-line interface (CLI) tool designed for i
    cd wallet
    ```
 
-2. **Install the required dependencies** by running the following command in your terminal:
+2. **Prepare Your Development Environment**
+
+   Depending on your operating system, you may need to install additional tools to ensure the `fastecdsa` Python package and other dependencies compile correctly:
+
+   - **Ubuntu Users:**
+
+     Install the necessary libraries by running:
+
+     ```bash
+     sudo apt-get update
+     sudo apt-get install libgmp3-dev
+     sudo apt-get install build-essential libssl-dev libffi-dev python3-dev
+     ```
+
+   - **Windows Users:**
+
+     Install Visual Studio, which includes the necessary C++ build tools. Download it from [https://visualstudio.microsoft.com/vs/preview/](https://visualstudio.microsoft.com/vs/preview/) and ensure to select the C++ workload during installation.
+     [wikihow Install Clang on Windows](https://www.wikihow.com/Install-Clang-on-Windows)
+
+   - **macOS Users:**
+
+     Install Xcode or the standalone Command Line Tools for Xcode, which include `clang`. This can be done by installing Xcode from the Mac App Store or by running the following command in the terminal:
+
+     ```bash
+     xcode-select --install
+     ```
+
+     For users who prefer not to install Xcode, downloading Command Line Tools for Xcode from [Apple Developer Downloads](https://developer.apple.com/download/more/) is an alternative.
+     [https://ics.uci.edu/~pattis/common/handouts/macclion/clang.html](https://ics.uci.edu/~pattis/common/handouts/macclion/clang.html)
+
+Please ensure these tools are correctly installed and configured on your system before proceeding with the installation of the Python package dependencies.
+
+3. **Install the required dependencies** by running the following command in your terminal:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Navigate to the project directory** where the `wallet.py` file is located.
+4. **Navigate to the project directory** where the `wallet.py` file is located.
 
 ## Usage
 
