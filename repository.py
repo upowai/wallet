@@ -46,6 +46,60 @@ class WalletRepository:
         result = request.json()["result"]
         return result
 
+    def get_validators_info(self, inode: str = None):
+        params = {'inode': inode} if inode else {}
+        request = requests.get(f'{self.node_url}/get_validators_info', params)
+        request.raise_for_status()
+        result = request.json()
+        return result
+
+    def get_inode_ballot_input_by_address_from_json(self, json, address, inode_address, pending_spent_outputs=None,
+                                                    check_pending_txs: bool = True):
+        if pending_spent_outputs is None:
+            pending_spent_outputs = []
+        pending_spent_outputs = [(output['tx_hash'], output['index']) for output in pending_spent_outputs] \
+            if check_pending_txs is True else []
+        inode_ballot_inputs = []
+        for validator_info in json:
+            if validator_info['validator'] == address:
+                for validator_voted_for in validator_info['vote']:
+                    if (validator_voted_for['tx_hash'], validator_voted_for['index']) in pending_spent_outputs:
+                        continue
+                    if validator_voted_for['wallet'] != inode_address:
+                        continue
+                    tx_input = TransactionInput(validator_voted_for['tx_hash'], validator_voted_for['index'])
+                    tx_input.amount = Decimal(str(validator_voted_for['vote_count']))
+                    tx_input.public_key = string_to_point(address)
+                    inode_ballot_inputs.append(tx_input)
+        return inode_ballot_inputs
+
+    def get_delegates_info(self, validator: str = None):
+        params = {'validator': validator} if validator else {}
+        request = requests.get(f'{self.node_url}/get_delegates_info', params)
+        request.raise_for_status()
+        result = request.json()
+        return result
+
+    def get_validator_ballot_input_by_address_from_json(self, json, address, validator_address, pending_spent_outputs=None,
+                                                    check_pending_txs: bool = True):
+        if pending_spent_outputs is None:
+            pending_spent_outputs = []
+        pending_spent_outputs = [(output['tx_hash'], output['index']) for output in pending_spent_outputs] \
+            if check_pending_txs is True else []
+        validator_ballot_inputs = []
+        for delegate_info in json:
+            if delegate_info['delegate'] == address:
+                for delegate_voted_for in delegate_info['vote']:
+                    if (delegate_voted_for['tx_hash'], delegate_voted_for['index']) in pending_spent_outputs:
+                        continue
+                    if delegate_voted_for['wallet'] != validator_address:
+                        continue
+                    tx_input = TransactionInput(delegate_voted_for['tx_hash'], delegate_voted_for['index'])
+                    tx_input.amount = Decimal(str(delegate_voted_for['vote_count']))
+                    tx_input.public_key = string_to_point(address)
+                    validator_ballot_inputs.append(tx_input)
+        return validator_ballot_inputs
+
     def get_address_input_from_json(self, result, address):
         pending_spent_outputs = [
             (output["tx_hash"], output["index"])

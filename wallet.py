@@ -203,16 +203,15 @@ async def main():
         )
         await push_tx(tx, wallet_utils)
 
-    # elif command == 'revoke':
-    #     parser = argparse.ArgumentParser()
-    #     parser.add_argument('command', metavar='command', type=str, help='action to do with the wallet')
-    #     parser.add_argument('-from', metavar='revoke_from', type=str, dest='revoke_from', required=True)
-    #     args = parser.parse_args()
-    #     revoke_from = args.revoke_from
-    #
-    #     selected_private_key = await select_key(db)
-    #     tx = await create_revoke_transaction(selected_private_key, revoke_from)
-    #     await push_tx(tx, wallet_utils)
+    elif command == 'revoke':
+        parser = argparse.ArgumentParser()
+        parser.add_argument('command', metavar='command', type=str, help='action to do with the wallet')
+        parser.add_argument('-from', metavar='revoke_from', type=str, dest='revoke_from', required=True)
+        args = parser.parse_args()
+        revoke_from = args.revoke_from
+        selected_private_key = await select_key(db)
+        tx = await wallet_utils.create_revoke_transaction(selected_private_key, revoke_from)
+        await push_tx(tx, wallet_utils)
 
 
 async def push_tx(tx, wallet_utils: Utils):
@@ -256,7 +255,7 @@ async def select_key(db):
         except ValueError:
             raise Exception("Invalid input. Please enter a valid integer.")
     else:
-        selected_private_key = db.get("private_keys")[0]
+        selected_private_key = db.get("keys")[0]["private_key"]
     return selected_private_key
 
 

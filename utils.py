@@ -1,21 +1,15 @@
-import logging
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal
 
-import requests
-from fastecdsa import curve, keys
+from fastecdsa import keys
 
 from repository import WalletRepository
 from upow_transactions.constants import CURVE, MAX_INODES
 from upow_transactions.helpers import (
-    string_to_point,
     point_to_string,
-    round_up_decimal,
-    sha256,
     OutputType,
     TransactionType,
 )
 from upow_transactions.transaction import Transaction
-from upow_transactions.transaction_input import TransactionInput
 from upow_transactions.transaction_output import TransactionOutput
 
 
@@ -70,8 +64,6 @@ class Utils:
 
         transaction.sign([private_key])
 
-        # requests.get(f'{self.NODE_URL}/push_tx', {'tx_hex': transaction.hex()}, timeout=10)
-        # await self.push_tx(transaction)
         return transaction
 
     async def create_transaction_to_send_multiple_wallet(
@@ -527,6 +519,60 @@ class Utils:
                 )
             )
 
+        transaction.sign([private_key])
+        return transaction
+
+    async def create_revoke_transaction(self, private_key, revoke_from_address):
+        address = point_to_string(keys.get_public_key(private_key, CURVE))
+        result_json = self.repo.get_address_info(address, stake_outputs=True,
+                                                 address_state=True)
+
+        stake_inputs = self.repo.get_stake_input_from_json(result_json, address=address)
+
+        is_validator_registered = result_json['is_validator']
+        if is_validator_registered:
+            return await self.revoke_vote_as_validator(private_key, revoke_from_address, result_json)
+        elif stake_inputs:
+            pass
+            return await self.revoke_vote_as_delegate(private_key, revoke_from_address, result_json)
+        else:
+            raise Exception('Not eligible to revoke')
+
+    async def revoke_vote_as_validator(self, private_key, inode_address, address_info):
+        address = point_to_string(keys.get_public_key(private_key, CURVE))
+        inode_ballot = self.repo.get_validators_info(inode_address)
+        inode_ballot_inputs = self.repo.get_inode_ballot_input_by_address_from_json(inode_ballot, address,
+                                                                                    inode_address,
+                                                                                    pending_spent_outputs=address_info[
+                                                                                        'pending_spent_outputs'])
+        if not inode_ballot_inputs:
+            raise Exception('You have not voted.')
+
+        message = self.string_to_bytes(str(TransactionType.REVOKE_AS_VALIDATOR.value))
+        sum_of_votes = sum(inode_ballot_input.amount for inode_ballot_input in inode_ballot_inputs)
+        transaction = Transaction(inode_ballot_inputs,
+                                  [TransactionOutput(address, amount=sum_of_votes,
+                                                     transaction_type=OutputType.VALIDATOR_VOTING_POWER)], message)
+        transaction.sign([private_key])
+        return transaction
+
+    async def revoke_vote_as_delegate(self, private_key, validator_address, address_info):
+        address = point_to_string(keys.get_public_key(private_key, CURVE))
+
+        validator_ballot = self.repo.get_delegates_info(validator_address)
+        validator_ballot_inputs = self.repo.get_validator_ballot_input_by_address_from_json(validator_ballot, address,
+                                                                                            validator_address,
+                                                                                            pending_spent_outputs=
+                                                                                            address_info['pending_spent_outputs'])
+
+        if not validator_ballot_inputs:
+            raise Exception('You have not voted.')
+
+        message = self.string_to_bytes(str(TransactionType.REVOKE_AS_DELEGATE.value))
+        sum_of_votes = sum(validator_ballot_input.amount for validator_ballot_input in validator_ballot_inputs)
+        transaction = Transaction(validator_ballot_inputs,
+                                  [TransactionOutput(address, amount=sum_of_votes,
+                                                     transaction_type=OutputType.DELEGATE_VOTING_POWER)], message)
         transaction.sign([private_key])
         return transaction
 
