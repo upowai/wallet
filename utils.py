@@ -327,7 +327,7 @@ class Utils:
         return transaction
 
     async def create_validator_registration_transaction(self, private_key):
-        amount = Decimal(1)
+        amount = Decimal(100)
         inputs = []
         address = point_to_string(keys.get_public_key(private_key, CURVE))
         result_json = self.repo.get_address_info(
