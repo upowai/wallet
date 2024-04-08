@@ -277,6 +277,14 @@ class WalletRepository:
         )
         return delegates_unspent_votes
 
+    def get_pending_vote_as_delegate_transaction_from_json(self, address, json):
+        pending_transactions = json["pending_transactions"]
+        pending_vote_as_delegate_transaction = []
+        for tx in pending_transactions:
+            if tx["transaction_type"] == "VOTE_AS_DELEGATE" and tx["inputs"][0]["address"] == address:
+                pending_vote_as_delegate_transaction.append(tx)
+        return pending_vote_as_delegate_transaction
+
     def get_balance_info(self, address: str):
         """
         Fetches the account data from the node and calculates the pending balance.

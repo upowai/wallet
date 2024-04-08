@@ -204,7 +204,7 @@ class Utils:
 
     async def create_unstake_transaction(self, private_key):
         sender_address = point_to_string(keys.get_public_key(private_key, CURVE))
-        result_json = self.repo.get_address_info(sender_address, stake_outputs=True)
+        result_json = self.repo.get_address_info(sender_address, stake_outputs=True, delegate_spent_votes=True)
         stake_inputs = self.repo.get_stake_input_from_json(
             result_json, address=sender_address
         )
@@ -213,9 +213,13 @@ class Utils:
         amount = stake_inputs[0].amount
 
         if self.repo.get_delegate_spent_votes_from_json(
-            result_json, check_pending_txs=False
+            result_json, check_pending_txs=True
         ):
             raise Exception("Kindly release the votes.")
+
+        pending_vote_tx = self.repo.get_pending_vote_as_delegate_transaction_from_json(sender_address, result_json)
+        if pending_vote_tx:
+            raise Exception('Kindly release the votes. Vote transaction is in pending')
 
         transaction = Transaction(
             [stake_inputs[0]],
