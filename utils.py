@@ -156,7 +156,7 @@ class Utils:
             raise Exception(f"Error: You don't have enough funds")
 
         stake_inputs = self.repo.get_stake_input_from_json(
-            result_json, address=sender_address
+            result_json, address=sender_address, check_pending_txs=False
         )
         if stake_inputs:
             raise Exception("Already staked")

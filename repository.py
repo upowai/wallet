@@ -120,11 +120,11 @@ class WalletRepository:
             tx_inputs.append(tx_input)
         return tx_inputs
 
-    def get_stake_input_from_json(self, result, address):
+    def get_stake_input_from_json(self, result, address, check_pending_txs: bool = True):
         pending_spent_outputs = [
             (output["tx_hash"], output["index"])
             for output in result["pending_spent_outputs"]
-        ]
+        ] if check_pending_txs is True else []
         stake_tx_input = []
         if result["stake_outputs"]:
             for stake_tx_output in result["stake_outputs"]:
