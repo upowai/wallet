@@ -213,7 +213,7 @@ class Utils:
         amount = stake_inputs[0].amount
 
         if self.repo.get_delegate_spent_votes_from_json(
-            result_json, check_pending_txs=True
+            result_json, check_pending_txs=False
         ):
             raise Exception("Kindly release the votes.")
 
