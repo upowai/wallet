@@ -4,8 +4,8 @@ from typing import Tuple
 from fastecdsa import ecdsa
 from fastecdsa.point import Point
 
-from upow_transactions.constants import CURVE, ENDIAN, SMALLEST
-from upow_transactions.helpers import point_to_string, string_to_point, InputType
+from .constants import CURVE, ENDIAN, SMALLEST
+from .helpers import point_to_string, string_to_point, InputType
 
 
 class TransactionInput:
@@ -14,8 +14,16 @@ class TransactionInput:
     signed: Tuple[int, int] = None
     amount: Decimal = None
 
-    def __init__(self, input_tx_hash: str, index: int, private_key: int = None, transaction=None,
-                 amount: Decimal = None, public_key: Point = None, input_type: InputType = InputType.REGULAR):
+    def __init__(
+        self,
+        input_tx_hash: str,
+        index: int,
+        private_key: int = None,
+        transaction=None,
+        amount: Decimal = None,
+        public_key: Point = None,
+        input_type: InputType = InputType.REGULAR,
+    ):
         self.tx_hash = input_tx_hash
         self.index = index
         self.private_key = private_key
@@ -47,13 +55,16 @@ class TransactionInput:
 
     async def get_related_input_info(self):
         tx = await self.get_transaction_info()
-        related_input = {'address': tx['inputs_addresses'][0]}
+        related_input = {"address": tx["inputs_addresses"][0]}
         return related_input
 
     async def get_related_output_info(self):
         tx = await self.get_transaction_info()
-        related_output = {'address': tx['outputs_addresses'][self.index], 'amount': Decimal(tx['outputs_amounts'][self.index]) / SMALLEST}
-        self.amount = related_output['amount']
+        related_output = {
+            "address": tx["outputs_addresses"][self.index],
+            "amount": Decimal(tx["outputs_amounts"][self.index]) / SMALLEST,
+        }
+        self.amount = related_output["amount"]
         return related_output
 
     async def get_amount(self):
@@ -67,12 +78,12 @@ class TransactionInput:
     async def get_address(self):
         if self.transaction is not None:
             return (await self.get_related_output()).address
-        return (await self.get_related_output_info())['address']
+        return (await self.get_related_output_info())["address"]
 
     async def get_voter_address(self):
         if self.transaction is not None:
             return (await self.get_related_input()).address
-        return (await self.get_related_input_info())['address']
+        return (await self.get_related_input_info())["address"]
 
     def sign(self, tx_hex: str, private_key: int = None):
         private_key = private_key if private_key is not None else self.private_key
@@ -85,10 +96,17 @@ class TransactionInput:
         return self.public_key or string_to_point(await self.get_voter_address())
 
     def tobytes(self):
-        return bytes.fromhex(self.tx_hash) + self.index.to_bytes(1, ENDIAN) + self.input_type.to_bytes(1, ENDIAN)
+        return (
+            bytes.fromhex(self.tx_hash)
+            + self.index.to_bytes(1, ENDIAN)
+            + self.input_type.to_bytes(1, ENDIAN)
+        )
 
     def get_signature(self):
-        return self.signed[0].to_bytes(32, ENDIAN).hex() + self.signed[1].to_bytes(32, ENDIAN).hex()
+        return (
+            self.signed[0].to_bytes(32, ENDIAN).hex()
+            + self.signed[1].to_bytes(32, ENDIAN).hex()
+        )
 
     async def verify(self, input_tx) -> bool:
         try:
@@ -97,9 +115,9 @@ class TransactionInput:
             return False
         # print('verifying with', point_to_string(public_key))
 
-        return \
-            ecdsa.verify(self.signed, bytes.fromhex(input_tx), public_key, CURVE) or \
-            ecdsa.verify(self.signed, input_tx, public_key, CURVE)
+        return ecdsa.verify(
+            self.signed, bytes.fromhex(input_tx), public_key, CURVE
+        ) or ecdsa.verify(self.signed, input_tx, public_key, CURVE)
 
     async def verify_revoke_tx(self, input_tx) -> bool:
         try:
@@ -108,17 +126,20 @@ class TransactionInput:
             return False
         # print('verifying with', point_to_string(public_key))
 
-        return \
-            ecdsa.verify(self.signed, bytes.fromhex(input_tx), public_key, CURVE) or \
-            ecdsa.verify(self.signed, input_tx, public_key, CURVE)
+        return ecdsa.verify(
+            self.signed, bytes.fromhex(input_tx), public_key, CURVE
+        ) or ecdsa.verify(self.signed, input_tx, public_key, CURVE)
 
     @property
     def as_dict(self):
         self_dict = vars(self).copy()
-        self_dict['signed'] = self_dict['signed'] is not None
-        if 'public_key' in self_dict: self_dict['public_key'] = point_to_string(self_dict['public_key'])
-        if 'transaction' in self_dict: del self_dict['transaction']
-        if 'private_key' in self_dict: del self_dict['private_key']
+        self_dict["signed"] = self_dict["signed"] is not None
+        if "public_key" in self_dict:
+            self_dict["public_key"] = point_to_string(self_dict["public_key"])
+        if "transaction" in self_dict:
+            del self_dict["transaction"]
+        if "private_key" in self_dict:
+            del self_dict["private_key"]
         return self_dict
 
     def __eq__(self, other):

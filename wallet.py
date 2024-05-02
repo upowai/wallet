@@ -10,7 +10,7 @@ from fastecdsa import keys, curve
 
 from upow_transactions.constants import CURVE
 from upow_transactions.helpers import point_to_string, sha256
-from utils import Utils
+from utils.utils import Utils
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, dir_path + "/../..")
@@ -203,14 +203,20 @@ async def main():
         )
         await push_tx(tx, wallet_utils)
 
-    elif command == 'revoke':
+    elif command == "revoke":
         parser = argparse.ArgumentParser()
-        parser.add_argument('command', metavar='command', type=str, help='action to do with the wallet')
-        parser.add_argument('-from', metavar='revoke_from', type=str, dest='revoke_from', required=True)
+        parser.add_argument(
+            "command", metavar="command", type=str, help="action to do with the wallet"
+        )
+        parser.add_argument(
+            "-from", metavar="revoke_from", type=str, dest="revoke_from", required=True
+        )
         args = parser.parse_args()
         revoke_from = args.revoke_from
         selected_private_key = await select_key(db)
-        tx = await wallet_utils.create_revoke_transaction(selected_private_key, revoke_from)
+        tx = await wallet_utils.create_revoke_transaction(
+            selected_private_key, revoke_from
+        )
         await push_tx(tx, wallet_utils)
 
 

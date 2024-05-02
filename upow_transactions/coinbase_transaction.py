@@ -1,7 +1,7 @@
 from decimal import Decimal
-from upow_transactions.constants import ENDIAN
-from upow_transactions.helpers import InputType, sha256
-from upow_transactions.transaction_output import TransactionOutput
+from .constants import ENDIAN
+from .helpers import InputType, sha256
+from .transaction_output import TransactionOutput
 
 
 class CoinbaseTransaction:
@@ -16,8 +16,10 @@ class CoinbaseTransaction:
     def hex(self):
         if self._hex is not None:
             return self._hex
-        hex_inputs = (bytes.fromhex(self.block_hash) + (0).to_bytes(1, ENDIAN)).hex() + InputType.REGULAR.value.to_bytes(1, ENDIAN).hex()
-        hex_outputs = ''.join(tx_output.tobytes().hex() for tx_output in self.outputs)
+        hex_inputs = (
+            bytes.fromhex(self.block_hash) + (0).to_bytes(1, ENDIAN)
+        ).hex() + InputType.REGULAR.value.to_bytes(1, ENDIAN).hex()
+        hex_outputs = "".join(tx_output.tobytes().hex() for tx_output in self.outputs)
 
         if all(len(tx_output.address_bytes) == 64 for tx_output in self.outputs):
             version = 1
@@ -26,14 +28,16 @@ class CoinbaseTransaction:
         else:
             raise NotImplementedError()
 
-        self._hex = ''.join([
-            version.to_bytes(1, ENDIAN).hex(),
-            (1).to_bytes(1, ENDIAN).hex(),
-            hex_inputs,
-            (len(self.outputs)).to_bytes(1, ENDIAN).hex(),
-            hex_outputs,
-            (36).to_bytes(1, ENDIAN).hex(),
-        ])
+        self._hex = "".join(
+            [
+                version.to_bytes(1, ENDIAN).hex(),
+                (1).to_bytes(1, ENDIAN).hex(),
+                hex_inputs,
+                (len(self.outputs)).to_bytes(1, ENDIAN).hex(),
+                hex_outputs,
+                (36).to_bytes(1, ENDIAN).hex(),
+            ]
+        )
 
         return self._hex
 

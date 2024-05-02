@@ -5,23 +5,39 @@ from typing import List
 from fastecdsa import keys
 from icecream import ic
 
-from upow_transactions.coinbase_transaction import CoinbaseTransaction
-from upow_transactions.constants import ENDIAN, SMALLEST, CURVE
-from upow_transactions.helpers import get_transaction_type_from_message, sha256, TransactionType, OutputType, \
-    bytes_to_string, point_to_string, InputType
-from upow_transactions.transaction_input import TransactionInput
-from upow_transactions.transaction_output import TransactionOutput
+from .coinbase_transaction import CoinbaseTransaction
+from .constants import ENDIAN, SMALLEST, CURVE
+from .helpers import (
+    get_transaction_type_from_message,
+    sha256,
+    TransactionType,
+    OutputType,
+    bytes_to_string,
+    point_to_string,
+    InputType,
+)
+from .transaction_input import TransactionInput
+from .transaction_output import TransactionOutput
 
 print = ic
 
 
 class Transaction:
-    def __init__(self, inputs: List[TransactionInput], outputs: List[TransactionOutput], message: bytes = None,
-                 version: int = None):
+    def __init__(
+        self,
+        inputs: List[TransactionInput],
+        outputs: List[TransactionOutput],
+        message: bytes = None,
+        version: int = None,
+    ):
         if len(inputs) >= 256:
-            raise Exception(f'You can spend max 255 inputs in a single transactions, not {len(inputs)}')
+            raise Exception(
+                f"You can spend max 255 inputs in a single transactions, not {len(inputs)}"
+            )
         if len(outputs) >= 256:
-            raise Exception(f'You can have max 255 outputs in a single transactions, not {len(outputs)}')
+            raise Exception(
+                f"You can have max 255 outputs in a single transactions, not {len(outputs)}"
+            )
         self.inputs = inputs
         self.outputs = outputs
         self.message = message
@@ -42,18 +58,20 @@ class Transaction:
 
     def hex(self, full: bool = True):
         inputs, outputs = self.inputs, self.outputs
-        hex_inputs = ''.join(tx_input.tobytes().hex() for tx_input in inputs)
-        hex_outputs = ''.join(tx_output.tobytes().hex() for tx_output in outputs)
+        hex_inputs = "".join(tx_input.tobytes().hex() for tx_input in inputs)
+        hex_outputs = "".join(tx_output.tobytes().hex() for tx_output in outputs)
 
         version = self.version
 
-        self._hex = ''.join([
-            version.to_bytes(1, ENDIAN).hex(),
-            len(inputs).to_bytes(1, ENDIAN).hex(),
-            hex_inputs,
-            (len(outputs)).to_bytes(1, ENDIAN).hex(),
-            hex_outputs
-        ])
+        self._hex = "".join(
+            [
+                version.to_bytes(1, ENDIAN).hex(),
+                len(inputs).to_bytes(1, ENDIAN).hex(),
+                hex_inputs,
+                (len(outputs)).to_bytes(1, ENDIAN).hex(),
+                hex_outputs,
+            ]
+        )
 
         if not full and (version <= 2 or self.message is None):
             return self._hex
@@ -98,7 +116,7 @@ class Transaction:
         checked_signatures = []
         for tx_input in self.inputs:
             if tx_input.signed is None:
-                print('not signed')
+                print("not signed")
                 return False
             await tx_input.get_public_key()
             signature = (tx_input.public_key, tx_input.signed)
@@ -113,9 +131,14 @@ class Transaction:
     def sign(self, private_keys: list = []):
         for private_key in private_keys:
             for input in self.inputs:
-                if input.private_key is None and (input.public_key or input.transaction):
+                if input.private_key is None and (
+                    input.public_key or input.transaction
+                ):
                     public_key = keys.get_public_key(private_key, CURVE)
-                    input_public_key = input.public_key or input.transaction.outputs[input.index].public_key
+                    input_public_key = (
+                        input.public_key
+                        or input.transaction.outputs[input.index].public_key
+                    )
                     if public_key == input_public_key:
                         input.private_key = private_key
         for input in self.inputs:
@@ -138,7 +161,11 @@ class Transaction:
             tx_hex = tx_bytes.read(32).hex()
             tx_index = int.from_bytes(tx_bytes.read(1), ENDIAN)
             input_type = int.from_bytes(tx_bytes.read(1), ENDIAN)
-            inputs.append(TransactionInput(tx_hex, index=tx_index, input_type=InputType(input_type)))
+            inputs.append(
+                TransactionInput(
+                    tx_hex, index=tx_index, input_type=InputType(input_type)
+                )
+            )
 
         outputs_count = int.from_bytes(tx_bytes.read(1), ENDIAN)
 
@@ -147,21 +174,31 @@ class Transaction:
         for i in range(0, outputs_count):
             pubkey = tx_bytes.read(64 if version == 1 else 33)
             amount_length = int.from_bytes(tx_bytes.read(1), ENDIAN)
-            amount = int.from_bytes(tx_bytes.read(amount_length), ENDIAN) / Decimal(SMALLEST)
+            amount = int.from_bytes(tx_bytes.read(amount_length), ENDIAN) / Decimal(
+                SMALLEST
+            )
             transaction_type = int.from_bytes(tx_bytes.read(1), ENDIAN)
-            outputs.append(TransactionOutput(bytes_to_string(pubkey), amount, OutputType(transaction_type)))
+            outputs.append(
+                TransactionOutput(
+                    bytes_to_string(pubkey), amount, OutputType(transaction_type)
+                )
+            )
 
         specifier = int.from_bytes(tx_bytes.read(1), ENDIAN)
         if specifier == 36:
             # assert len(inputs) == 1 and len(outputs) == 1
             assert len(inputs) == 1
-            coinbase_transaction = CoinbaseTransaction(inputs[0].tx_hash, outputs[0].address, outputs[0].amount)
+            coinbase_transaction = CoinbaseTransaction(
+                inputs[0].tx_hash, outputs[0].address, outputs[0].amount
+            )
             if len(outputs) > 1:
                 coinbase_transaction.outputs.extend(outputs[1:])
             return coinbase_transaction
         else:
             if specifier == 1:
-                message_length = int.from_bytes(tx_bytes.read(1 if version <= 2 else 2), ENDIAN)
+                message_length = int.from_bytes(
+                    tx_bytes.read(1 if version <= 2 else 2), ENDIAN
+                )
                 message = tx_bytes.read(message_length)
             else:
                 message = None
@@ -170,7 +207,10 @@ class Transaction:
             signatures = []
 
             while True:
-                signed = (int.from_bytes(tx_bytes.read(32), ENDIAN), int.from_bytes(tx_bytes.read(32), ENDIAN))
+                signed = (
+                    int.from_bytes(tx_bytes.read(32), ENDIAN),
+                    int.from_bytes(tx_bytes.read(32), ENDIAN),
+                )
                 if signed[0] == 0:
                     break
                 signatures.append(signed)
