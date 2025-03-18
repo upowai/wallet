@@ -222,8 +222,8 @@ async def main():
 
 async def push_tx(tx, wallet_utils: Utils):
     try:
-        r = requests.get(
-            f"{wallet_utils.NODE_URL}/push_tx", {"tx_hex": tx.hex()}, timeout=10
+        r = requests.post(
+            f"{wallet_utils.NODE_URL}/push_tx", json={"tx_hex": tx.hex()}, timeout=10
         )
         r.raise_for_status()
         res = r.json()
